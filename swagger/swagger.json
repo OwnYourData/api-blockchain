@@ -1,0 +1,41 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This is a sample text.",
+    "version": "0.3.0",
+    "title": "OwnYourData Blockchain API",
+    "contact": {
+      "email": "office@ownyourdata.eu"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "host": "blockchain.ownyourdata.eu",
+  "basePath": "/api",
+  "schemes": [
+    "https"
+  ],
+  "paths": {
+    "/status": {
+      "get": {
+        "summary": "status of blockchain API",
+        "description": "some text",
+        "operationId": "addPet",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "valid"
+          }
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "Find out more about Swagger",
+    "url": "http://swagger.io"
+  }
+}

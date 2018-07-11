@@ -1,0 +1,14 @@
+api:
+  image: oydeu/api-blockchain
+  env_file: .env
+  environment:
+    RAILS_ENV: production
+  links:
+    - db
+  ports:
+    - "4500:3000"
+
+db:
+  image: postgres:9.4.5
+  volumes:
+    - docker-postgres:/var/lib/postgresql/data

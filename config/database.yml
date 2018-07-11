@@ -1,0 +1,30 @@
+# PostgreSQL. Versions 9.1 and up are supported.
+#
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  host: localhost
+  port: 5432
+  username: postgres
+  password: <%= ENV['POSTGRES_PASSWORD'] %>
+  # For details on connection pooling, see Rails configuration guide
+  # http://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  <<: *default
+  username: data
+  password: data
+  database: api_development
+
+test:
+  <<: *default
+  username: data
+  password: data
+  database: api_test
+
+production:
+  <<: *default
+  host: db
+  database: api_production
+  password: <%= ENV['API_DATABASE_PASSWORD'] %>
