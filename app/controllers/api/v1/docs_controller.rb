@@ -16,7 +16,6 @@ module Api
 
                         retVal = {}
                         retVal["status"] = "exist"
-                        retVal["id"] = @doc.id
                         retVal["address"] = ""
                         retVal["root-node"] = ""
                         retVal["audit-proof"] = []
@@ -52,12 +51,11 @@ module Api
                         doc = Doc.new(doc_hash: hash)
                         if doc.save
                             render json: {"status": "new",
-                                          "id": doc.id,
                                           "address": "",
                                           "root-node": "",
                                           "audit-proof": [],
                                           "ether-timestamp": "",
-                                          "oyd-timestamp": ""},
+                                          "oyd-timestamp": @doc.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ')},
                                    status: 200
                         else
                             render json: {"error": doc.errors.messages.join(", ")},
