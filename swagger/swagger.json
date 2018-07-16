@@ -23,6 +23,9 @@
         "summary": "read or write from blockchain",
         "description": "submit a hash value and check if it is already stored in the blockchain",
         "operationId": "getDoc",
+        "consumes": [
+          "application/json"
+        ],
         "produces": [
           "application/json"
         ],
@@ -30,8 +33,9 @@
           {
             "name": "hash",
             "in": "query",
-            "description": "hash value to be queried",
-            "required": true
+            "description": "hash value to be saved/queried",
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {
