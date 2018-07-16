@@ -18,11 +18,34 @@
     "https"
   ],
   "paths": {
+    "/doc": {
+      "post": {
+        "summary": "read or write from blockchain",
+        "description": "submit a hash value and check if it is already stored in the blockchain",
+        "operationId": "getDoc",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "hash",
+            "in": "query",
+            "description": "hash value to be queried",
+            "required": true
+          }
+        ],
+        "responses": {
+          "500": {
+            "description": "invalid hash"
+          }
+        }
+      }
+    },
     "/status": {
       "get": {
         "summary": "status of blockchain API",
-        "description": "some text",
-        "operationId": "addPet",
+        "description": "get information about the current status of the service",
+        "operationId": "getStatus",
         "produces": [
           "application/json"
         ],
@@ -33,9 +56,5 @@
         }
       }
     }
-  },
-  "externalDocs": {
-    "description": "Find out more about Swagger",
-    "url": "http://swagger.io"
   }
 }
