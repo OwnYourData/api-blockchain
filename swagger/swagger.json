@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "description": "This is a sample text.",
+    "description": "Try https://seal.ownyourdata.eu as front-end.",
     "version": "0.3.0",
     "title": "OwnYourData Blockchain API",
     "contact": {

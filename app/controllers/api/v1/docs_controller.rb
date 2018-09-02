@@ -26,18 +26,19 @@ module Api
                         if !@merkle.nil?
                             payload = JSON.parse(@merkle.payload) 
                             transaction = @merkle.oyd_transaction
-                            mht = Marshal::load(Base64.decode64(@merkle.merkle_tree.delete("\n")))
-                            pos = payload.index(@doc['id'])
-                            audit_proof = mht.audit_proof(pos).collect {|item| item.unpack('H*')[0] }.join(', ')
+                            if payload.length > 1
+                              mht = Marshal::load(Base64.decode64(@merkle.merkle_tree.delete("\n")))
+                              pos = payload.index(@doc['id'])
+                              audit_proof = mht.audit_proof(pos).collect {|item| item.unpack('H*')[0] }.join(', ')
+                              retVal["audit-proof"] = audit_proof
+                            end
                             blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':4510/getTransactionStatus'
                             response = HTTParty.get(blockchain_url,
                                 headers: { 'Content-Type' => 'application/json'},
                                 body: { id:   @merkle.id, 
                                         hash: transaction }.to_json ).parsed_response
-
                             retVal["address"] = @merkle.oyd_transaction.to_s unless @merkle.nil?
                             retVal["root-node"] = @merkle.root_hash.to_s unless @merkle.nil?
-                            retVal["audit-proof"] = audit_proof
                             if !response["transaction-status"].nil?
                                 blockTimestamp = response["transaction-status"]["blockTimestamp"]
                                 retVal["ether-timestamp"] = Time.at(blockTimestamp.to_i(16)).strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -48,8 +49,8 @@ module Api
                         render json: retVal,
                                status: 200
                     else
-                        doc = Doc.new(doc_hash: hash)
-                        if doc.save
+                        @doc = Doc.new(doc_hash: hash)
+                        if @doc.save
                             render json: {"status": "new",
                                           "address": "",
                                           "root-node": "",
@@ -58,7 +59,7 @@ module Api
                                           "oyd-timestamp": @doc.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ')},
                                    status: 200
                         else
-                            render json: {"error": doc.errors.messages.join(", ")},
+                            render json: {"error": @doc.errors.messages.join(", ")},
                                    status: 500
                         end
                     end
@@ -87,7 +88,7 @@ module Api
                                "last_date": Merkle.last.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ'),
                                "last_count": Merkle.last.docs.count,
                                "balance": response["balanceEther"].to_s,
-                               "version":"0.3"}, 
+                               "version":"0.3.1"}, 
                        status: 200
             end
         end

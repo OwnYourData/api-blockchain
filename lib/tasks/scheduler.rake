@@ -23,8 +23,13 @@ namespace :scheduler do
                 puts "add hash: " + item_hash.to_s
             end
 
-            serialized_object = Base64.encode64(Marshal::dump(mht)).strip
-            root_node = mht.head().unpack('H*')[0]
+            if hash_array.length == 1
+                root_node = hash_array.first
+                serialized_object = ""
+            else 
+                serialized_object = Base64.encode64(Marshal::dump(mht)).strip
+                root_node = mht.head().unpack('H*')[0]
+            end
             puts "root_node: " + root_node.to_s
 
             puts "perform srv-blockchain"
