@@ -127,6 +127,31 @@ module Api
                 end
               end
             end
+
+            # validate hash and audit proof against root_node
+            # audit proof ="hash; +audit, -proof, +values" in hexadecimal
+            # root_node in hexadecimal
+            def validate(audit_proof, root_node)
+                node = Digest::SHA256.digest("\0" + audit_proof.split("; ")[0])
+                ap = audit_proof.split("; ")[1].split(", ")
+                ap.each do |item|
+                    if item[0] == "+"
+                        item[0] = ""
+                        left_node = [item].pack("H*")
+                        right_node = node
+                    else
+                        item[0] = ""
+                        left_node = node
+                        right_node = [item].pack("H*")
+                    end
+                    node = Digest::SHA256.digest("\x01" + left_node + right_node)
+                end
+                if node.unpack('H*')[0] == root_node
+                    puts "successfully validated\n"
+                else
+                    puts "audit proof does not match root hash"
+                end
+            end            
         end
     end
 end
