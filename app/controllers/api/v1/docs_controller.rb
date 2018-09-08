@@ -69,16 +69,6 @@ module Api
                 end
             end
 
-            def validate
-                render json: {"coming": "soon"}, 
-                       status: 200
-            end
-
-            def merkle
-                render json: {"coming": "soon"}, 
-                       status: 200
-            end
-
             def status
                 blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':4510/getBalance'
                 response = HTTParty.get(blockchain_url).parsed_response
