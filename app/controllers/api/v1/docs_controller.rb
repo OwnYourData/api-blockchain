@@ -24,13 +24,13 @@ module Api
 
 
                         if !@merkle.nil?
-                            payload = JSON.parse(@merkle.payload) 
+                            payload = JSON.parse(@merkle.payload)
                             transaction = @merkle.oyd_transaction
                             if payload.length > 1
                               mht = Marshal::load(Base64.decode64(@merkle.merkle_tree.delete("\n")))
                               pos = payload.index(@doc['id'])
                               audit_proof = mht.audit_proof(pos).collect {|item| item.unpack('H*')[0] }.join(', ')
-                              retVal["audit-proof"] = audit_proof
+                              retVal["audit-proof"] = lr_annotate(audit_proof, payload.length, pos)
                             end
                             blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':4510/getTransactionStatus'
                             response = HTTParty.get(blockchain_url,
@@ -88,9 +88,217 @@ module Api
                                "last_date": Merkle.last.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ'),
                                "last_count": Merkle.last.docs.count,
                                "balance": response["balanceEther"].to_s,
-                               "version":"0.3.1"}, 
+                               "version":"0.4.0"}, 
                        status: 200
+            end
+
+            # audit_proof - array with hashes for audit proof
+            # len - number of items in merkle tree
+            # pos - zero-based position of item/leaf in merkle tree
+            def lr_annotate(audit_proof, len, pos)
+              pathStr = get_auditproof_path(len, pos)
+              retVal = []
+              audit_proof.split(", ").each do |item|
+                item = pathStr[0] + item
+                pathStr[0] = ''
+                retVal << item
+              end
+              retVal.join(", ")
+            end
+
+            # return for a given element (defined by pos) in a merkle tree
+            # with len number of leafes the path for the audit proof where
+            # + indicates left element of a branch and - indicates right
+            # element of a branch
+            def get_auditproof_path(len, pos)
+              if (len == 1)
+                ""
+              else
+                p2 = 2 << (len.bit_length - 2)
+                if (len == p2)
+                  digits = Math.log2( 2 << ((len-1).bit_length - 2)) +1
+                  pos.to_s(2).rjust(digits, "0").reverse.gsub("1", "+").gsub("0", "-")
+                else
+                  if (pos < p2)
+                    get_auditproof_path(p2, pos) + "-"
+                  else
+                    get_auditproof_path(len-p2, pos-p2) + "+"
+                  end
+                end
+              end
             end
         end
     end
 end
+
+
+# 1 element
+#   0 []
+
+# 2 elements
+#   0 [-] - 0
+#   1 [+] - 1
+
+# 3 elements
+#   0 [-,-] - 00
+#   1 [+,-] - 01
+#   2 [+]   - 10
+
+# 4 elements
+#   0 [-,-] - 00
+#   1 [+,-] - 01
+#   2 [-,+] - 10
+#   3 [+,+] - 11
+
+# 5 elements
+#   0 [-,-,-] - 000
+#   1 [+,-,-] - 001
+#   2 [-,+,-] - 010
+#   3 [+,+,-] - 011
+#   4 [+]     - 100
+
+# 6 elements
+#   0 [-,-,-] - 000
+#   1 [+,-,-] - 001
+#   2 [-,+,-] - 010
+#   3 [+,+,-] - 011
+#   4 [-,+]   - 100
+#   5 [+,+]   - 101
+
+# 7 elements
+#   0 [-,-,-] - 000
+#   1 [+,-,-] - 001
+#   2 [-,+,-] - 010
+#   3 [+,+,-] - 011
+#   4 [-,-,+] - 100
+#   5 [+,-,+] - 101
+#   6 [+,+]   - 110
+
+# 8 elements
+#   0 [-,-,-] - 000
+#   1 [+,-,-] - 001
+#   2 [-,+,-] - 010
+#   3 [+,+,-] - 011
+#   4 [-,-,+] - 100
+#   5 [+,-,+] - 101
+#   6 [-,+,+] - 110
+#   7 [+,+,+] - 111
+
+
+# 9 elements
+#   0 [-,-,-,-] - 0000
+#   1 [+,-,-,-] - 0001
+#   2 [-,+,-,-] - 0010
+#   3 [+,+,-,-] - 0011
+#   4 [-,-,+,-] - 0100
+#   5 [+,-,+,-] - 0101
+#   6 [-,+,+,-] - 0110
+#   7 [+,+,+,-] - 0111
+#   8 [+]       - 1000
+
+# 10 elements
+#   0 [-,-,-,-] - 0000
+#   1 [+,-,-,-] - 0001
+#   2 [-,+,-,-] - 0010
+#   3 [+,+,-,-] - 0011
+#   4 [-,-,+,-] - 0100
+#   5 [+,-,+,-] - 0101
+#   6 [-,+,+,-] - 0110
+#   7 [+,+,+,-] - 0111
+#   8 [-,+]     - 1000
+#   9 [+,+]     - 1001
+
+# 11 elements
+#   0 [-,-,-,-] - 0000
+#   1 [+,-,-,-] - 0001
+#   2 [-,+,-,-] - 0010
+#   3 [+,+,-,-] - 0011
+#   4 [-,-,+,-] - 0100
+#   5 [+,-,+,-] - 0101
+#   6 [-,+,+,-] - 0110
+#   7 [+,+,+,-] - 0111
+#   8 [-,-,+]   - 1000
+#   9 [+,-,+]   - 1001
+#  10 [+,+]     - 1010
+
+# 12 elements
+#   0 [-,-,-,-]
+#   1 [+,-,-,-]
+#   2 [-,+,-,-]
+#   3 [+,+,-,-]
+#   4 [-,-,+,-]
+#   5 [+,-,+,-]
+#   6 [-,+,+,-]
+#   7 [+,+,+,-]
+#   8 [-,-,+]
+#   9 [+,-,+]
+#  10 [-,+,+]
+#  11 [+,+,+]
+
+#  ---
+
+# 13 elements
+#   0 [-,-,-,-]
+#   1 [+,-,-,-]
+#   2 [-,+,-,-]
+#   3 [+,+,-,-]
+#   4 [-,-,+,-]
+#   5 [+,-,+,-]
+#   6 [-,+,+,-]
+#   7 [+,+,+,-]
+#   8 [-,-,-,+]
+#   9 [+,-,-,+]
+#  10 [+,-,+]
+#  11 [-,+,+]
+#  12 [+,+,+]
+
+# 14 elements
+#   0 [-,-,-,-]
+#   1 [+,-,-,-]
+#   2 [-,+,-,-]
+#   3 [+,+,-,-]
+#   4 [-,-,+,-]
+#   5 [+,-,+,-]
+#   6 [-,+,+,-]
+#   7 [+,+,+,-]
+#   8 [-,-,-,+]
+#   9 [+,-,-,+]
+#  10 [-,+,-,+]
+#  11 [+,+,-,+]
+#  12 [-,+,+]
+#  13 [+,+,+]
+
+# 15 elements
+#   0 [-,-,-,-]
+#   1 [+,-,-,-]
+#   2 [-,+,-,-]
+#   3 [+,+,-,-]
+#   4 [-,-,+,-]
+#   5 [+,-,+,-]
+#   6 [-,+,+,-]
+#   7 [+,+,+,-]
+#   8 [-,-,-,+]
+#   9 [+,-,-,+]
+#  10 [-,+,-,+]
+#  11 [+,+,-,+]
+#  12 [-,-,+,+]
+#  13 [+,-,+,+]
+#  14 [+,+,+]
+
+# 16 elements
+#   0 [-,-,-,-]
+#   1 [+,-,-,-]
+#   2 [-,+,-,-]
+#   3 [+,+,-,-]
+#   4 [-,-,+,-]
+#   5 [+,-,+,-]
+#   6 [-,+,+,-]
+#   7 [+,+,+,-]
+#   8 [-,-,-,+]
+#   9 [+,-,-,+]
+#  10 [-,+,-,+]
+#  11 [+,+,-,+]
+#  12 [-,-,+,+]
+#  13 [+,-,+,+]
+#  14 [-,+,+,+]
+#  15 [+,+,+,+]
