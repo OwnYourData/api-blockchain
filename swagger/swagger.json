@@ -20,7 +20,7 @@
   "paths": {
     "/doc": {
       "post": {
-        "summary": "read or write from blockchain",
+        "summary": "query or write to blockchain",
         "description": "submit a hash value and check if it is already stored in the blockchain",
         "operationId": "getDoc",
         "consumes": [
@@ -35,6 +35,13 @@
             "in": "query",
             "description": "hash value to be saved/queried",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "description": "either 'default' for query and create if non-existent or 'verify' to query only",
+            "required": false,
             "type": "string"
           }
         ],

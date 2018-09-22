@@ -1,5 +1,12 @@
+PATH
+  remote: merkle-hash-tree
+  specs:
+    merkle-hash-tree (0.1.1.6.g26ed297.1.dirty.20180922.223155)
+      git-version-bump
+
 GEM
   remote: https://rubygems.org/
+  remote: file:/Users/christoph/oyd/blockchain/api-blockchain/merkle-hash-tree/
   specs:
     actioncable (5.1.6)
       actionpack (= 5.1.6)
@@ -72,8 +79,6 @@ GEM
       nokogiri (>= 1.5.9)
     mail (2.7.0)
       mini_mime (>= 0.1.1)
-    merkle-hash-tree (0.1.1)
-      git-version-bump
     method_source (0.9.0)
     mini_mime (1.0.1)
     mini_portile2 (2.3.0)
@@ -157,7 +162,7 @@ DEPENDENCIES
   httparty
   jbuilder
   listen (>= 3.0.5, < 3.2)
-  merkle-hash-tree
+  merkle-hash-tree (~> 0.1.1)!
   pg
   puma (~> 3.7)
   rack-cors

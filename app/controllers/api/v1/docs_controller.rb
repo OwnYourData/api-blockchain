@@ -49,17 +49,30 @@ module Api
                         render json: retVal,
                                status: 200
                     else
-                        @doc = Doc.new(doc_hash: hash)
-                        if @doc.save
-                            render json: {"status": "new",
+                        if params["mode"].nil? or params["mode"].to_s == "" or params["mode"].to_s == "default"
+                            @doc = Doc.new(doc_hash: hash)
+                            if @doc.save
+                                render json: {"status": "new",
+                                              "address": "",
+                                              "root-node": "",
+                                              "audit-proof": [],
+                                              "ether-timestamp": "",
+                                              "oyd-timestamp": @doc.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ')},
+                                       status: 200
+                            else
+                                render json: {"error": @doc.errors.messages.join(", ")},
+                                       status: 500
+                            end
+                        elsif params["mode"].to_s == "verify"
+                            render json: {"status": "unknown",
                                           "address": "",
                                           "root-node": "",
                                           "audit-proof": [],
                                           "ether-timestamp": "",
-                                          "oyd-timestamp": @doc.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ')},
+                                          "oyd-timestamp": ""},
                                    status: 200
-                        else
-                            render json: {"error": @doc.errors.messages.join(", ")},
+                        elsif params["mode"].to_s == "delete"
+                            render json: {"error": "not available"},
                                    status: 500
                         end
                     end
