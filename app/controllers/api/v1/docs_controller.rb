@@ -6,6 +6,8 @@ module Api
             respond_to :html, only: []
             respond_to :xml, only: []
 
+            require 'open3'
+
             def worker
                 hash = params[:hash].to_s
 
@@ -20,8 +22,9 @@ module Api
                         retVal["root-node"] = ""
                         retVal["audit-proof"] = []
                         retVal["ether-timestamp"] = ""
+                        retVal["tsr"] = @doc.doc_tsr.to_s
+                        retVal["tsr-timestamp"] = @doc.tsr_timestamp.to_s
                         retVal["oyd-timestamp"] = ""
-
 
                         if !@merkle.nil?
                             payload = JSON.parse(@merkle.payload)
@@ -50,13 +53,20 @@ module Api
                                status: 200
                     else
                         if params["mode"].nil? or params["mode"].to_s == "" or params["mode"].to_s == "default"
-                            @doc = Doc.new(doc_hash: hash)
+                            out, err, status = Open3.capture3("bash", "-c", 
+                              'openssl ts -query -data <(echo -n "' + hash + '") -no_nonce -sha256 -cert | curl -s -H "Content-Type: application/timestamp-query" --data-binary @- https://freetsa.org/tsr | base64 -w 0')
+                            out2, err2, status2 = Open3.capture3("bash", "-c", 
+                              'openssl ts -reply -in <(echo -n "' + out.to_s + '" | base64 --decode) -text')
+                            tsr_timestamp = ActiveSupport::TimeZone.new('UTC').parse(out2.split("\n")[13][12..100]).strftime('%Y-%m-%dT%H:%M:%SZ')
+                            @doc = Doc.new(doc_hash: hash, doc_tsr: out.to_s, tsr_timestamp: tsr_timestamp)
                             if @doc.save
                                 render json: {"status": "new",
                                               "address": "",
                                               "root-node": "",
                                               "audit-proof": [],
                                               "ether-timestamp": "",
+                                              "tsr": out.to_s,
+                                              "tsr-timestamp": tsr_timestamp,
                                               "oyd-timestamp": @doc.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ')},
                                        status: 200
                             else
@@ -69,6 +79,8 @@ module Api
                                           "root-node": "",
                                           "audit-proof": [],
                                           "ether-timestamp": "",
+                                          "tsr": "",
+                                          "tsr-timestamp": "",
                                           "oyd-timestamp": ""},
                                    status: 200
                         elsif params["mode"].to_s == "delete"
