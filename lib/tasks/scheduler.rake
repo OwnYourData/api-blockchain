@@ -5,7 +5,7 @@ namespace :scheduler do
         require 'digest'
         require 'base64'
 
-        @doc = Doc.where(merkle_id: nil)
+        @doc = Doc.where(merkle_id: nil).or(Doc.where(merkle_id: Merkle.where(payload: nil).pluck(:id)))
         puts "open docs: " + @doc.count.to_s
         if @doc.count > 0
             id_array = Array.new

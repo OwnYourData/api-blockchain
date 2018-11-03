@@ -24,9 +24,9 @@ module Api
                         retVal["ether-timestamp"] = ""
                         retVal["tsr"] = @doc.doc_tsr.to_s
                         retVal["tsr-timestamp"] = @doc.tsr_timestamp.to_s
-                        retVal["oyd-timestamp"] = ""
+                        retVal["oyd-timestamp"] = @doc.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-                        if !@merkle.nil?
+                        if !@merkle.nil? and !@merkle.payload.nil?
                             payload = JSON.parse(@merkle.payload)
                             transaction = @merkle.oyd_transaction
                             if payload.length > 1
@@ -36,18 +36,23 @@ module Api
                               retVal["audit-proof"] = lr_annotate(audit_proof, payload.length, pos)
                             end
                             blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':4510/getTransactionStatus'
-                            response = HTTParty.get(blockchain_url,
-                                headers: { 'Content-Type' => 'application/json'},
-                                body: { id:   @merkle.id, 
-                                        hash: transaction }.to_json ).parsed_response
+                            timeout = false
+                            begin
+                              response = HTTParty.get(blockchain_url,
+                                  timeout: 15,
+                                  headers: { 'Content-Type' => 'application/json'},
+                                  body: { id:   @merkle.id, 
+                                          hash: transaction }.to_json ).parsed_response
+                            rescue
+                              timeout = true
+                            end
                             retVal["address"] = @merkle.oyd_transaction.to_s unless @merkle.nil?
                             retVal["root-node"] = @merkle.root_hash.to_s unless @merkle.nil?
-                            if !response["transaction-status"].nil?
+                            if !(timeout or (!response.nil? and response["transaction-status"].nil?))
                                 blockTimestamp = response["transaction-status"]["blockTimestamp"]
                                 retVal["ether-timestamp"] = Time.at(blockTimestamp.to_i(16)).strftime('%Y-%m-%dT%H:%M:%SZ')
                             end
                         end
-                        retVal["oyd-timestamp"] = @doc.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 
                         render json: retVal,
                                status: 200

@@ -6,12 +6,11 @@ gem 'pg'
 gem 'puma', '~> 3.7'
 gem 'rack-cors', require: 'rack/cors'
 gem 'jbuilder'
-gem 'rbnacl'
 gem 'httparty'
 gem 'merkle-hash-tree', path: '/usr/src/app/merkle-hash-tree'
 gem 'responders'
 gem 'rack-reverse-proxy', :require => "rack/reverse_proxy"
-
+gem 'rbnacl'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
