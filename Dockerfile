@@ -1,17 +1,18 @@
-FROM ruby:2.5.1
+FROM ruby:2.5.3
 MAINTAINER "Christoph Fabianek" christoph@ownyourdata.eu
 
 RUN mkdir -p /usr/src/app/merkle-hash-tree
 WORKDIR /usr/src/app
 
-RUN apt-get update && \
+RUN echo "deb http://deb.debian.org/debian stretch-backports main" >> /etc/apt/sources.list && \
+	apt-get update && \
 	apt-get install -y --no-install-recommends \
 		build-essential \
 		postgresql \
 		postgresql-contrib \
 		libpq-dev \
-		libsodium-dev && \
-	rm -rf /var/lib/apt/lists/*
+		libsodium-dev=1.0.16-2~bpo9+1 && \
+	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ENV RAILS_ROOT $WORKDIR
 COPY merkle-hash-tree /usr/src/app/merkle-hash-tree
