@@ -25,6 +25,15 @@ module Api
                         retVal["tsr"] = @doc.doc_tsr.to_s
                         retVal["tsr-timestamp"] = @doc.tsr_timestamp.to_s
                         retVal["oyd-timestamp"] = @doc.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+                        retVal["url"] = @doc.url.to_s
+                        retVal["did"] = @doc.did.to_s
+                        retVal["previous"] = Doc.find(@doc.previous).doc_hash rescue ""
+                        if @doc.did.to_s != ""
+                            retVal["history"] = Doc.where(did: @doc.did.to_s).pluck(:created_at, :doc_hash)
+                        else
+                            retVal["history"] = []
+                        end
+                        retVal["note"] = @doc.note.to_s
 
                         if !@merkle.nil? and !@merkle.payload.nil?
                             payload = JSON.parse(@merkle.payload)
@@ -65,28 +74,38 @@ module Api
                             tsr_timestamp = ActiveSupport::TimeZone.new('UTC').parse(out2.split("\n")[13][12..100]).strftime('%Y-%m-%dT%H:%M:%SZ')
                             @doc = Doc.new(doc_hash: hash, doc_tsr: out.to_s, tsr_timestamp: tsr_timestamp)
                             if @doc.save
-                                render json: {"status": "new",
-                                              "address": "",
-                                              "root-node": "",
-                                              "audit-proof": [],
-                                              "ether-timestamp": "",
-                                              "tsr": out.to_s,
-                                              "tsr-timestamp": tsr_timestamp,
-                                              "oyd-timestamp": @doc.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ')},
+                                render json: { "status": "new",
+                                               "address": "",
+                                               "root-node": "",
+                                               "audit-proof": [],
+                                               "ether-timestamp": "",
+                                               "tsr": out.to_s,
+                                               "tsr-timestamp": tsr_timestamp,
+                                               "oyd-timestamp": @doc.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                                               "url": "",
+                                               "did": "",
+                                               "previous": "",
+                                               "history": [],
+                                               "note": "" },
                                        status: 200
                             else
                                 render json: {"error": @doc.errors.messages.join(", ")},
                                        status: 500
                             end
                         elsif params["mode"].to_s == "verify"
-                            render json: {"status": "unknown",
-                                          "address": "",
-                                          "root-node": "",
-                                          "audit-proof": [],
-                                          "ether-timestamp": "",
-                                          "tsr": "",
-                                          "tsr-timestamp": "",
-                                          "oyd-timestamp": ""},
+                            render json: { "status": "unknown",
+                                           "address": "",
+                                           "root-node": "",
+                                           "audit-proof": [],
+                                           "ether-timestamp": "",
+                                           "tsr": "",
+                                           "tsr-timestamp": "",
+                                           "oyd-timestamp": "",
+                                           "url": "",
+                                           "did": "",
+                                           "previous": "",
+                                           "history": [],
+                                           "note": "" },
                                    status: 200
                         elsif params["mode"].to_s == "delete"
                             render json: {"error": "not available"},

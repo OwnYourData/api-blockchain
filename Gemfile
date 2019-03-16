@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 source 'file:///usr/src/app/merkle-hash-tree'
+#source 'file:///Users/christoph/oyd/blockchain/api-blockchain/merkle-hash-tree'
 
 gem 'rails', '~> 5.1.6'
 gem 'pg'
@@ -8,6 +9,7 @@ gem 'rack-cors', require: 'rack/cors'
 gem 'jbuilder'
 gem 'httparty'
 gem 'merkle-hash-tree', path: '/usr/src/app/merkle-hash-tree'
+#gem 'merkle-hash-tree', path: '/Users/christoph/oyd/blockchain/api-blockchain/merkle-hash-tree'
 gem 'responders'
 gem 'rack-reverse-proxy', :require => "rack/reverse_proxy"
 gem 'rbnacl'

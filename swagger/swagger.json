@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "description": "The OwnYourData notary service provides a simple and secure way to protect data and documents. Using cryptographic methods and blockchain technology, information is secured anonymously, tamper-proof and legally binding.\n \n Further information:\n - use https://seal.ownyourdata.eu as a front-end for this API.\n - View other [OwnYourData Service API's](https://api-docs.ownyourdata.eu).",
+    "description": "The OwnYourData notary service provides a simple and secure way to protect data and documents. Using cryptographic methods and blockchain technology, information is secured anonymously, tamper-proof and legally binding.\n \n Further information:\n - use https://seal.ownyourdata.eu as a front-end for this API\n - view other [OwnYourData Service API's](https://api-docs.ownyourdata.eu)",
     "version": "v1",
     "title": "OwnYourData Notary API",
     "contact": {

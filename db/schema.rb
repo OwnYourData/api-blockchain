@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180706214446) do
+ActiveRecord::Schema.define(version: 20181230214725) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -21,6 +21,11 @@ ActiveRecord::Schema.define(version: 20180706214446) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "comment"
+    t.text "doc_tsr"
+    t.string "tsr_timestamp"
+    t.string "did"
+    t.string "url"
+    t.text "note"
     t.index ["doc_hash"], name: "index_docs_on_doc_hash"
   end
 
