@@ -3,6 +3,7 @@ source 'file:///usr/src/app/merkle-hash-tree'
 #source 'file:///Users/christoph/oyd/blockchain/api-blockchain/merkle-hash-tree'
 
 gem 'rails', '~> 5.1.6'
+gem 'actionview', '~> 5.1.6.2'
 gem 'pg'
 gem 'puma', '~> 3.7'
 gem 'rack-cors', require: 'rack/cors'
