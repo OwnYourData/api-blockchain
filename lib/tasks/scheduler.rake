@@ -33,15 +33,23 @@ namespace :scheduler do
             puts "root_node: " + root_node.to_s
 
             puts "perform srv-blockchain"
-            # request transaction
-            blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':4510/create'
-            # puts "blockchain_url: " + blockchain_url.to_s
-            response = HTTParty.post(blockchain_url,
-                            headers: { 'Content-Type' => 'application/json'},
-                            body: { id:   @merkle.id, 
-                                    hash: root_node }.to_json ).parsed_response
-            # puts "repsonse: " + response.to_s
-            oyd_transaction = response['transaction-id']
+
+            case ENV["BLOCKCHAIN"].to_s
+            when "ARTIS"
+                blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':3000/api/create'
+                response = HTTParty.get(blockchain_url + "?hash=0x" + root_node)
+                oyd_transaction = response.parsed_response["tx"].to_s
+            else
+                # request transaction
+                blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':4510/create'
+                # puts "blockchain_url: " + blockchain_url.to_s
+                response = HTTParty.post(blockchain_url,
+                                headers: { 'Content-Type' => 'application/json'},
+                                body: { id:   @merkle.id, 
+                                        hash: root_node }.to_json ).parsed_response
+                # puts "repsonse: " + response.to_s
+                oyd_transaction = response['transaction-id']
+            end
 
             @merkle.update_attributes(
                 payload:         id_array.to_json,

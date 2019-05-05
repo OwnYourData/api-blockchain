@@ -21,7 +21,7 @@ module Api
                         retVal["address"] = ""
                         retVal["root-node"] = ""
                         retVal["audit-proof"] = []
-                        retVal["ether-timestamp"] = ""
+                        retVal["dlt-timestamp"] = ""
                         retVal["tsr"] = @doc.doc_tsr.to_s
                         retVal["tsr-timestamp"] = @doc.tsr_timestamp.to_s
                         retVal["oyd-timestamp"] = @doc.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -44,23 +44,40 @@ module Api
                               audit_proof = mht.audit_proof(pos).collect {|item| item.unpack('H*')[0] }.join(', ')
                               retVal["audit-proof"] = lr_annotate(audit_proof, payload.length, pos)
                             end
-                            blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':4510/getTransactionStatus'
-                            timeout = false
-                            begin
-                              response = HTTParty.get(blockchain_url,
-                                  timeout: 15,
-                                  headers: { 'Content-Type' => 'application/json'},
-                                  body: { id:   @merkle.id, 
-                                          hash: transaction }.to_json ).parsed_response
-                            rescue
-                              timeout = true
+
+                            case ENV["BLOCKCHAIN"].to_s
+                            when "ARTIS"
+                                blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':3000/api/tx_info?tx=' + transaction.to_s
+                                timeout = false
+                                begin
+                                  response = HTTParty.get(blockchain_url,
+                                      timeout: 15).parsed_response
+                                rescue
+                                  timeout = true
+                                end
+                                if !(timeout or (!response.nil? and response["timestamp"].nil?))
+                                    blockTimestamp = response["timestamp"]
+                                    retVal["dlt-timestamp"] = Time.at(blockTimestamp).strftime('%Y-%m-%dT%H:%M:%SZ')
+                                end
+                            else
+                                blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':4510/getTransactionStatus'
+                                timeout = false
+                                begin
+                                  response = HTTParty.get(blockchain_url,
+                                      timeout: 15,
+                                      headers: { 'Content-Type' => 'application/json'},
+                                      body: { id:   @merkle.id, 
+                                              hash: transaction }.to_json ).parsed_response
+                                rescue
+                                  timeout = true
+                                end
+                                if !(timeout or (!response.nil? and response["transaction-status"].nil?))
+                                    blockTimestamp = response["transaction-status"]["blockTimestamp"]
+                                    retVal["dlt-timestamp"] = Time.at(blockTimestamp.to_i(16)).strftime('%Y-%m-%dT%H:%M:%SZ')
+                                end
                             end
                             retVal["address"] = @merkle.oyd_transaction.to_s unless @merkle.nil?
                             retVal["root-node"] = @merkle.root_hash.to_s unless @merkle.nil?
-                            if !(timeout or (!response.nil? and response["transaction-status"].nil?))
-                                blockTimestamp = response["transaction-status"]["blockTimestamp"]
-                                retVal["ether-timestamp"] = Time.at(blockTimestamp.to_i(16)).strftime('%Y-%m-%dT%H:%M:%SZ')
-                            end
                         end
 
                         render json: retVal,
@@ -78,7 +95,7 @@ module Api
                                                "address": "",
                                                "root-node": "",
                                                "audit-proof": [],
-                                               "ether-timestamp": "",
+                                               "dlt-timestamp": "",
                                                "tsr": out.to_s,
                                                "tsr-timestamp": tsr_timestamp,
                                                "oyd-timestamp": @doc.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ'),
@@ -97,7 +114,7 @@ module Api
                                            "address": "",
                                            "root-node": "",
                                            "audit-proof": [],
-                                           "ether-timestamp": "",
+                                           "dlt-timestamp": "",
                                            "tsr": "",
                                            "tsr-timestamp": "",
                                            "oyd-timestamp": "",
@@ -119,15 +136,29 @@ module Api
             end
 
             def status
-                blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':4510/getBalance'
-                response = HTTParty.get(blockchain_url).parsed_response
-
+                case ENV["BLOCKCHAIN"].to_s
+                when "ARTIS"
+                    blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':3000/api/balance'
+                    response = HTTParty.get(blockchain_url).parsed_response
+                    retVal = response["balance"].to_i / 1e18
+                    balance = retVal.to_s
+                else
+                    blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':4510/getBalance'
+                    response = HTTParty.get(blockchain_url).parsed_response
+                    balance = response["balanceEther"].to_s
+                end
+                last_date = nil
+                last_count = 0
+                if Merkle.count > 0
+                    last_date = Merkle.last.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+                    last_count = Merkle.last.docs.count
+                end
                 render json: { "docs": Doc.count, 
                                "pending": Doc.where(merkle_id: nil).count,
-                               "last_date": Merkle.last.created_at.utc.strftime('%Y-%m-%dT%H:%M:%SZ'),
-                               "last_count": Merkle.last.docs.count,
-                               "balance": response["balanceEther"].to_s,
-                               "version":"0.4.0"}, 
+                               "last_date": last_date,
+                               "last_count": last_count,
+                               "balance": balance,
+                               "version":"0.5.0"}, 
                        status: 200
             end
 

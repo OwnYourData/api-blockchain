@@ -11,7 +11,7 @@ RUN echo "deb http://deb.debian.org/debian stretch-backports main" >> /etc/apt/s
 		postgresql \
 		postgresql-contrib \
 		libpq-dev \
-		libsodium-dev=1.0.16-2~bpo9+1 && \
+		libsodium-dev=1.0.17-1~bpo9+1 && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ENV RAILS_ROOT $WORKDIR
