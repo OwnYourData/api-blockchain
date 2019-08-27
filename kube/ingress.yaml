@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ethereum-blockchain-api-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - blockchain.data-container.net
+    secretName: letsencrypt-ethereum-blockchain-api
+  rules:
+  - host: blockchain.data-container.net
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: ethereum-blockchain-api-service
+          servicePort: 80

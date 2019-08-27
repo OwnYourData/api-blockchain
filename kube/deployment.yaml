@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ethereum-blockchain-api-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ethereum-blockchain-api
+  template:
+    metadata:
+      labels:
+        app: ethereum-blockchain-api
+    spec:
+      containers:
+      - name: ethereum-blockchain-api
+        image: oydeu/api-blockchain:latest
+        ports:
+        - containerPort: 3000
+        env:
+          - name: LANG
+            value: C.UTF-8
+          - name: RAILS_LOG_TO_STDOUT
+            value: "TRUE"
+          - name: RAILS_ENV
+            value: production
+          - name: DOCKER_LINK_BC
+            value: ethereum-blockchain-service-service.default.svc.cluster.local
+          - name: DOCKER_LINK_BC_PORT
+            value: 80
+          - name: DB_HOST
+            value: db-cluster-postgresql.default.svc.cluster.local
+          - name: DB_NAME
+            value: ethereum-blockchain-api_production
+          - name: DB_USER
+            value: postgres
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: general-secrets
+                key: db-passwd
+          - name: SECRET_KEY_BASE
+            valueFrom:
+              secretKeyRef:
+                name: ethereum-blockchain-api-secrets
+                key: secret-key-base

@@ -47,7 +47,7 @@ module Api
 
                             case ENV["BLOCKCHAIN"].to_s
                             when "ARTIS"
-                                blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':3000/api/tx_info?tx=' + transaction.to_s
+                                blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':' + (ENV["DOCKER_LINK_BC_PORT"] || "3000") + '/api/tx_info?tx=' + transaction.to_s
                                 timeout = false
                                 begin
                                   response = HTTParty.get(blockchain_url,
@@ -60,7 +60,7 @@ module Api
                                     retVal["dlt-timestamp"] = Time.at(blockTimestamp).strftime('%Y-%m-%dT%H:%M:%SZ')
                                 end
                             else
-                                blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':4510/getTransactionStatus'
+                                blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':' + (ENV["DOCKER_LINK_BC_PORT"] || "4510") + '/getTransactionStatus'
                                 timeout = false
                                 begin
                                   response = HTTParty.get(blockchain_url,
@@ -138,12 +138,12 @@ module Api
             def status
                 case ENV["BLOCKCHAIN"].to_s
                 when "ARTIS"
-                    blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':3000/api/balance'
+                    blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':' + (ENV["DOCKER_LINK_BC_PORT"] || "3000") + '/api/balance'
                     response = HTTParty.get(blockchain_url).parsed_response
                     retVal = response["balance"].to_i / 1e18
                     balance = retVal.to_s
                 else
-                    blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':4510/getBalance'
+                    blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':' + (ENV["DOCKER_LINK_BC_PORT"] || "4510") + '/getBalance'
                     response = HTTParty.get(blockchain_url).parsed_response
                     balance = response["balanceEther"].to_s
                 end

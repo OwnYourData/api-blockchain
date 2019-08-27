@@ -25,6 +25,7 @@ test:
 
 production:
   <<: *default
-  host: db
-  database: api_production
-  password: <%= ENV['API_DATABASE_PASSWORD'] %>
+  database: <%= ENV['DB_NAME'] %>
+  host: <%= ENV['DB_HOST'] %>
+  username: <%= ENV['DB_USER'] %>
+  password: <%= ENV['POSTGRES_PASSWORD'] %>

@@ -36,12 +36,12 @@ namespace :scheduler do
 
             case ENV["BLOCKCHAIN"].to_s
             when "ARTIS"
-                blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':3000/api/create'
+                blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':' + (ENV["DOCKER_LINK_BC_PORT"] || "3000") + '/api/create'
                 response = HTTParty.get(blockchain_url + "?hash=0x" + root_node)
                 oyd_transaction = response.parsed_response["tx"].to_s
             else
                 # request transaction
-                blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':4510/create'
+                blockchain_url = 'http://' + ENV["DOCKER_LINK_BC"].to_s + ':' + (ENV["DOCKER_LINK_BC_PORT"] || "4510") + '/create'
                 # puts "blockchain_url: " + blockchain_url.to_s
                 response = HTTParty.post(blockchain_url,
                                 headers: { 'Content-Type' => 'application/json'},
